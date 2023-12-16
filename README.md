@@ -13,16 +13,16 @@ Calendar
 1. Create symbolic link
 
 ```shell
-(~/infra/aws/environments/stg) ln -s provider.tf ../../provider.tf
+(~/environments/stg) ln -s provider.tf ../../provider.tf
 ```
 
-2. Create S3 bucket for terraform backend
+1. Create S3 bucket for terraform backend
 
 ```shell
 aws s3api create-bucket --bucket sharely-terraform-state-bucket --region ap-northeast-1 --create-bucket-configuration LocationConstraint=ap-northeast-1
 ```
 
-3. Create Dynamo DB for terraform backend rock
+1. Create Dynamo DB for terraform backend rock
 
 ```shell
 aws dynamodb create-table --table-name sharely-terraform-up-and-running-locks \
@@ -32,19 +32,19 @@ aws dynamodb create-table --table-name sharely-terraform-up-and-running-locks \
   --region ap-northeast-1
 ```
 
-4. Terraform init
+1. Terraform init
 
 ```shell
-(~/infra/aws/environments/stg) terraform init
+(~/environments/stg) terraform init
 ```
 
-5. Encrypt s3 bucket
+1. Encrypt s3 bucket
 
 ```shell
 aws s3api put-bucket-encryption --bucket sharely-terraform-state-bucket --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
 ```
 
-6. Set Versioning to s3 bucket
+1. Set Versioning to s3 bucket
 
 ```shell
 aws s3api put-bucket-versioning --bucket sharely-terraform-state-bucket --versioning-configuration Status=Enabled
