@@ -35,8 +35,8 @@ variable "pub_subnets" {
     c = string
   })
   default = {
-    a = "192.168.0.0/28"
-    c = "192.168.0.16/28"
+    a = "192.168.0.0/27"
+    c = "192.168.0.32/27"
   }
 }
 
@@ -46,8 +46,8 @@ variable "pri1_subnets" {
     c = string
   })
   default = {
-    a = "192.168.0.32/28"
-    c = "192.168.0.64/28"
+    a = "192.168.0.64/27"
+    c = "192.168.0.96/27"
   }
 }
 
@@ -57,8 +57,8 @@ variable "pri2_subnets" {
     c = string
   })
   default = {
-    a = "192.168.0.48/28"
-    c = "192.168.0.80/28"
+    a = "192.168.0.128/27"
+    c = "192.168.0.160/27"
   }
 }
 
@@ -90,22 +90,6 @@ variable "task" {
     desired_count = 2
     cpu           = "256" # 0.25 vCPU
     memory        = "512"
-  }
-}
-
-variable "images" {
-  description = "Docker image configurations"
-  type = object({
-    tag = object({
-      frontend = string
-      backend  = string
-    })
-  })
-  default = {
-    tag = {
-      frontend = "test"
-      backend  = "test"
-    }
   }
 }
 
