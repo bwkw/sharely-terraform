@@ -58,8 +58,8 @@ module "ecs" {
       backend  = module.ecr.repository_urls["backend"],
     }
     latest_tag = {
-      frontend = "latest" // data.aws_ecr_image.frontend.image_tag
-      backend  = "latest" // data.aws_ecr_image.backend.image_tag
+      frontend = "latest" // Note: 2回目以降の実行では、data.aws_ecr_image.frontend.image_tag
+      backend  = "latest" // Note: 2回目以降の実行では、data.aws_ecr_image.backend.image_tag
     }
   }
   task = {
