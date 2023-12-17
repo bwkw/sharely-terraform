@@ -31,6 +31,13 @@ module "aurora" {
   }
 }
 
+module "cloudwatch" {
+  source = "../../modules/cloudwatch"
+
+  app_name    = var.app_name
+  environment = var.environment
+}
+
 module "ecr" {
   source = "../../modules/ecr"
 
