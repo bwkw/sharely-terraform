@@ -16,16 +16,16 @@ variable "vpc_id" {
 variable "security_group_ids" {
   description = "Security Group IDs for Application Load Balancers"
   type = object({
-    pub  : list(string),
-    pri1 : list(string),
+    pub_alb  = list(string),
+    pri1_alb = list(string),
   })
 }
 
 variable "subnet_ids" {
   description = "Subnet IDs for Application Load Balancers"
   type = object({
-    pub  : list(string),
-    pri1 : list(string),
+    pub  = list(string),
+    pri1 = list(string),
   })
 }
 
