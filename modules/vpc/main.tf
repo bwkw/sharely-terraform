@@ -378,3 +378,38 @@ resource "aws_security_group_rule" "vpc_endpoint_ecr_dkr_egress" {
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
 }
+
+# ---------------------------------------
+# Security Group for CloudWatch VPC Endpoint
+# ---------------------------------------
+resource "aws_security_group" "vpc_endpoint_cloudwatch_logs" {
+  name   = "${local.common_name_prefix}-vpc-endpoint-cloudwatch-logs-sg"
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${local.common_name_prefix}-vpc-endpoint-cloudwatch-logs-sg"
+  }
+}
+
+resource "aws_security_group_rule" "vpc_endpoint_cloudwatch_logs_ingress" {
+  for_each = {
+    from_frontend = { port = 443, sg = aws_security_group.frontend_ecs_tasks.id },
+    from_backend  = { port = 443, sg = aws_security_group.backend_ecs_tasks.id }
+  }
+
+  security_group_id        = aws_security_group.vpc_endpoint_cloudwatch_logs.id
+  type                     = "ingress"
+  from_port                = each.value["port"]
+  to_port                  = each.value["port"]
+  protocol                 = "tcp"
+  source_security_group_id = each.value["sg"]
+}
+
+resource "aws_security_group_rule" "vpc_endpoint_cloudwatch_logs_egress" {
+  security_group_id = aws_security_group.vpc_endpoint_cloudwatch_logs.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+}

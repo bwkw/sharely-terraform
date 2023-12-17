@@ -52,6 +52,19 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }
 }
 
+resource "aws_vpc_endpoint" "cloudwatch" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.pri1_subnet_ids
+  security_group_ids  = var.vpc_endpoint_sg_ids.cloudwatch_logs
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${local.common_name_prefix}-cloudwatch-vpc-endpoint"
+  }
+}
+
 resource "aws_vpc_endpoint" "s3" {
   vpc_id              = var.vpc_id
   service_name        = "com.amazonaws.${var.region}.s3"
