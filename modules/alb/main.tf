@@ -9,23 +9,29 @@ terraform {
   }
 }
 
+# ---------------------------------------
+# local variables
+# ---------------------------------------
 locals {
   common_name_prefix = "${var.app_name}-${var.environment}"
 
   alb_configs = {
     pub = {
       internal           = false,
-      security_groups    = var.security_group_ids.pub,
+      security_groups    = var.security_group_ids.pub_alb
       subnets            = var.subnet_ids.pub
     },
     pri1 = {
       internal           = true,
-      security_groups    = var.security_group_ids.pri1,
+      security_groups    = var.security_group_ids.pri1_alb
       subnets            = var.subnet_ids.pri1
     }
   }
 }
 
+# ---------------------------------------
+# ALB
+# ---------------------------------------
 resource "aws_lb" "alb" {
   for_each = local.alb_configs
 
@@ -42,6 +48,9 @@ resource "aws_lb" "alb" {
   }
 }
 
+# ---------------------------------------
+# ALB Listener
+# ---------------------------------------
 resource "aws_lb_listener" "http" {
   for_each = local.alb_configs
 
@@ -55,11 +64,14 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# ---------------------------------------
+# ALB Target Group
+# ---------------------------------------
 resource "aws_lb_target_group" "alb" {
   for_each = local.alb_configs
 
   name     = "${local.common_name_prefix}-${each.key}-alb-tg"
-  port     = 80
+  port     = 3000
   protocol = "HTTP"
   vpc_id   = var.vpc_id
   target_type = "ip"

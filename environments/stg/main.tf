@@ -6,8 +6,8 @@ module "alb" {
 
   vpc_id = module.vpc.id
   security_group_ids = {
-    pub  = [module.vpc.security_group_ids["pub_alb"]]
-    pri1 = [module.vpc.security_group_ids["pri_alb"]]
+    pub_alb  = [module.vpc.security_group_ids["pub_alb"]]
+    pri1_alb = [module.vpc.security_group_ids["pri_alb"]]
   }
   subnet_ids = {
     pub  = [module.vpc.subnet_ids["pub_a"], module.vpc.subnet_ids["pub_c"]]
@@ -31,6 +31,13 @@ module "aurora" {
   }
 }
 
+module "cloudwatch" {
+  source = "../../modules/cloudwatch"
+
+  app_name    = var.app_name
+  environment = var.environment
+}
+
 module "ecr" {
   source = "../../modules/ecr"
 
@@ -50,9 +57,9 @@ module "ecs" {
       frontend = module.ecr.repository_urls["frontend"],
       backend  = module.ecr.repository_urls["backend"],
     }
-    tag = {
-      frontend = var.images.tag.frontend
-      backend  = var.images.tag.backend
+    latest_tag = {
+      frontend = "latest" // Note: 2回目以降の実行では、data.aws_ecr_image.frontend.image_tag
+      backend  = "latest" // Note: 2回目以降の実行では、data.aws_ecr_image.backend.image_tag
     }
   }
   task = {
@@ -60,8 +67,8 @@ module "ecs" {
     cpu           = var.task.cpu
     memory        = var.task.memory
     subnet_ids = {
-      frontend = [module.vpc.subnet_ids["pub_a"], module.vpc.subnet_ids["pub_c"]]
-      backend  = [module.vpc.subnet_ids["pub_a"], module.vpc.subnet_ids["pub_c"]]
+      frontend = [module.vpc.subnet_ids["pri1_a"], module.vpc.subnet_ids["pri1_c"]]
+      backend  = [module.vpc.subnet_ids["pri1_a"], module.vpc.subnet_ids["pri1_c"]]
     }
     security_group_ids = {
       frontend = [module.vpc.security_group_ids["frontend_ecs_tasks"]]
@@ -79,7 +86,7 @@ module "ecs" {
     pub = module.alb.target_group_arns["pub"]
     pri = module.alb.target_group_arns["pri1"]
   }
-  cloudwatch_log_group_name = module.cloudwatch.log_group_name
+  cloudwatch_log_group_name = module.cloudwatch.ecs_log_group.name
 }
 
 module "oidc" {
@@ -132,6 +139,7 @@ module "vpc-endpoint" {
   vpc_endpoint_sg_ids = {
     ecr_api         = [module.vpc.security_group_ids["vpc_endpoint_ecr_api"]]
     ecr_dkr         = [module.vpc.security_group_ids["vpc_endpoint_ecr_dkr"]]
+    cloudwatch_logs = [module.vpc.security_group_ids["vpc_endpoint_cloudwatch_logs"]]
     secrets_manager = [module.vpc.security_group_ids["vpc_endpoint_secrets_manager"]]
   }
 }

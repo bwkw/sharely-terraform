@@ -37,7 +37,7 @@ variable "images" {
       frontend = string
       backend  = string
     })
-    tag = object({
+    latest_tag = object({
       frontend = string
       backend  = string
     })
@@ -64,6 +64,6 @@ variable "alb_target_group_arns" {
 }
 
 variable "cloudwatch_log_group_name" {
-  description = "CloudWatch log group name"
+  description = "CloudWatch Log Group Name"
   type        = string
 }

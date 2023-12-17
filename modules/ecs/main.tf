@@ -17,7 +17,7 @@ locals {
   task_definitions = {
     "frontend" = {
       image_url             = var.images.url.frontend
-      image_tag             = var.images.tag.frontend
+      latest_image_tag      = var.images.latest_tag.frontend
       container_name_suffix = "frontend-container"
       subnet_ids            = var.task.subnet_ids.frontend
       security_group_ids    = var.task.security_group_ids.frontend
@@ -25,7 +25,7 @@ locals {
     }
     "backend" = {
       image_url             = var.images.url.backend
-      image_tag             = var.images.tag.backend
+      latest_image_tag      = var.images.latest_tag.backend
       container_name_suffix = "backend-container"
       subnet_ids            = var.task.subnet_ids.backend
       security_group_ids    = var.task.security_group_ids.backend
@@ -85,10 +85,12 @@ resource "aws_ecs_service" "common" {
   for_each = local.task_definitions
 
   name            = "${each.key}-service"
-  cluster         = aws_ecs_cluster.main.id
+  cluster         = aws_ecs_cluster.main.arn
   task_definition = aws_ecs_task_definition.common[each.key].arn
   launch_type     = "FARGATE"
   desired_count   = var.task.desired_count
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
 
   network_configuration {
     subnets          = each.value.subnet_ids
@@ -99,7 +101,7 @@ resource "aws_ecs_service" "common" {
   load_balancer {
     target_group_arn = each.value.target_group_arn
     container_name   = "${var.app_name}-${var.environment}-${each.value.container_name_suffix}"
-    container_port   = 80
+    container_port   = 3000
   }
 
   tags = {
@@ -119,12 +121,13 @@ resource "aws_ecs_task_definition" "common" {
   cpu                      = var.task.cpu
   memory                   = var.task.memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
   container_definitions = jsonencode([{
     name  = "${var.app_name}-${var.environment}-${each.value.container_name_suffix}"
-    image = "${each.value.image_url}:${each.value.image_tag}"
+    image = "${each.value.image_url}:${each.value.latest_image_tag}"
     portMappings = [{
-      containerPort = 80
-      hostPort      = 80
+      containerPort = 3000
+      hostPort      = 3000 // Fargateでは無視される
     }]
     logConfiguration = {
       logDriver = "awslogs"
@@ -135,6 +138,7 @@ resource "aws_ecs_task_definition" "common" {
       }
     }
   }])
+
   tags = {
     Name = "${local.common_name_prefix}-ecs-task-definition"
   }

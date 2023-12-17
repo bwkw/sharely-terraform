@@ -33,6 +33,7 @@ variable "vpc_endpoint_sg_ids" {
   type = object({
     ecr_api         = list(string)
     ecr_dkr         = list(string)
+    cloudwatch_logs = list(string)
     secrets_manager = list(string)
   })
 }

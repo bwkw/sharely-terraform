@@ -30,8 +30,8 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_app_name"></a> [app\_name](#input\_app\_name) | The name of the application. | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment where infrastructure is deployed, e.g., 'dev', 'stg', 'prod'. | `string` | n/a | yes |
-| <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security Group IDs for Application Load Balancers | <pre>object({<br>    pub  : list(string),<br>    pri1 : list(string),<br>  })</pre> | n/a | yes |
-| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Subnet IDs for Application Load Balancers | <pre>object({<br>    pub  : list(string),<br>    pri1 : list(string),<br>  })</pre> | n/a | yes |
+| <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security Group IDs for Application Load Balancers | <pre>object({<br>    pub_alb  = list(string),<br>    pri1_alb = list(string),<br>  })</pre> | n/a | yes |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Subnet IDs for Application Load Balancers | <pre>object({<br>    pub  = list(string),<br>    pri1 = list(string),<br>  })</pre> | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of the VPC where resources will be deployed. | `string` | n/a | yes |
 
 ## Outputs
