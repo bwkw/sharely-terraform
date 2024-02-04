@@ -95,6 +95,10 @@ module "oidc" {
   environment = var.environment
 
   ecr_repository_arns = [module.ecr.repository_arns["frontend"], module.ecr.repository_arns["backend"]]
+  task_definition_arns = [
+    module.ecs.task_definition_arns["frontend"],
+    module.ecs.task_definition_arns["backend"],
+  ]
   oidc_thumbprint     = var.iam_role_oidc_thumbprint
   github_actions      = var.iam_role_github_actions
   sts_audience        = var.sts_audience

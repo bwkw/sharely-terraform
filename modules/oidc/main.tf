@@ -59,7 +59,7 @@ resource "aws_iam_policy" "github_actions_ecr" {
           "ecr:PutImage",
           "ecr:InitiateLayerUpload",
           "ecr:CompleteLayerUpload",
-          "ecr:BatchCheckLayerAvailability"
+          "ecr:BatchCheckLayerAvailability",
         ],
         "Effect" : "Allow",
         "Resource" : var.ecr_repository_arns
@@ -67,7 +67,31 @@ resource "aws_iam_policy" "github_actions_ecr" {
   })
 }
 
+resource "aws_iam_policy" "github_actions_ecs" {
+  name = "github-actions-ecs"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        "Action" : [
+          "ecs:DescribeTaskDefinition",
+          "ecs:RegisterTaskDefinition",
+          "iam:PassRole",  // ECSのタスク定義を登録する際に、タスク実行ロールをパスする権限が必要
+          "ecs:DescribeServices",
+          "ecs:UpdateService",
+        ],
+        "Effect" : "Allow",
+        "Resource" : "*"
+      }]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "github_actions_ecr" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_actions_ecr.arn
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_ecs" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_ecs.arn
 }

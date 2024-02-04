@@ -13,6 +13,11 @@ variable "ecr_repository_arns" {
   type        = list(string)
 }
 
+variable "task_definition_arns" {
+  description = "The ARN of the  ECS task definition"
+  type        = list(string)
+}
+
 variable "oidc_thumbprint" {
   description = "Thumbprint of the OIDC provider"
   type        = string

@@ -1,9 +1,9 @@
 output "cluster_arn" {
-  description = "The ARN of the ECS cluster."
+  description = "The ARN of the ECS cluster"
   value       = aws_ecs_cluster.main.arn
 }
 
-output "task_definition_arn" {
+output "task_definition_arns" {
   description = "The ARN of the  ECS task definition"
   value       = {
     frontend     = aws_ecs_task_definition.common["frontend"].arn
