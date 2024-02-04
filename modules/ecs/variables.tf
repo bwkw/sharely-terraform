@@ -47,9 +47,16 @@ variable "images" {
 variable "autoscaling" {
   description = "Autoscaling related configurations"
   type = object({
-    cpu_scale_up_target_value = number
-    scale_out_cooldown        = number
-    scale_in_cooldown         = number
+    cpu = object({
+      scale_up_target_value = number
+      scale_out_cooldown    = number
+      scale_in_cooldown     = number
+    })
+    memory = object({
+      scale_up_target_value = number
+      scale_out_cooldown    = number
+      scale_in_cooldown     = number
+    })
     min_capacity              = number
     max_capacity              = number
   })

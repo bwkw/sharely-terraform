@@ -76,11 +76,10 @@ module "ecs" {
     }
   }
   autoscaling = {
-    cpu_scale_up_target_value = var.autoscaling.cpu_scale_up_target_value
-    scale_out_cooldown        = var.autoscaling.scale_out_cooldown
-    scale_in_cooldown         = var.autoscaling.scale_in_cooldown
-    min_capacity              = var.autoscaling.min_capacity
-    max_capacity              = var.autoscaling.max_capacity
+    cpu          = var.autoscaling.cpu
+    memory       = var.autoscaling.memory
+    min_capacity = var.autoscaling.min_capacity
+    max_capacity = var.autoscaling.max_capacity
   }
   alb_target_group_arns = {
     pub = module.alb.target_group_arns["pub"]

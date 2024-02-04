@@ -96,16 +96,30 @@ variable "task" {
 variable "autoscaling" {
   description = "Autoscaling related configurations"
   type = object({
-    cpu_scale_up_target_value = number
-    scale_out_cooldown        = number
-    scale_in_cooldown         = number
-    min_capacity              = number
-    max_capacity              = number
+    cpu = object({
+      scale_up_target_value = number
+      scale_out_cooldown    = number
+      scale_in_cooldown     = number
+    })
+    memory = object({
+      scale_up_target_value = number
+      scale_out_cooldown    = number
+      scale_in_cooldown     = number
+    })
+    min_capacity = number
+    max_capacity = number
   })
   default = {
-    cpu_scale_up_target_value = 80
-    scale_out_cooldown        = 60
-    scale_in_cooldown         = 300
+    cpu = {
+      scale_up_target_value = 70
+      scale_out_cooldown    = 60
+      scale_in_cooldown     = 60
+    }
+    memory = {
+      scale_up_target_value = 80
+      scale_out_cooldown    = 300
+      scale_in_cooldown     = 600
+    }
     min_capacity              = 1
     max_capacity              = 2
   }

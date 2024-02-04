@@ -18,7 +18,6 @@ locals {
     "frontend" = {
       image_url             = var.images.url.frontend
       latest_image_tag      = var.images.latest_tag.frontend
-      container_name_suffix = "frontend-container"
       subnet_ids            = var.task.subnet_ids.frontend
       security_group_ids    = var.task.security_group_ids.frontend
       target_group_arn      = var.alb_target_group_arns.pub
@@ -26,7 +25,6 @@ locals {
     "backend" = {
       image_url             = var.images.url.backend
       latest_image_tag      = var.images.latest_tag.backend
-      container_name_suffix = "backend-container"
       subnet_ids            = var.task.subnet_ids.backend
       security_group_ids    = var.task.security_group_ids.backend
       target_group_arn      = var.alb_target_group_arns.pri
@@ -38,7 +36,7 @@ locals {
 # ECS Task Execution Role
 # ---------------------------------------
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "${var.app_name}-${var.environment}-ecs-task-execution-role"
+  name               = "${local.common_name_prefix}-ecs-task-execution-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -71,7 +69,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_attachments" 
 # ECS Cluster
 # ---------------------------------------
 resource "aws_ecs_cluster" "main" {
-  name = "${var.app_name}-${var.environment}-cluster"
+  name = "${local.common_name_prefix}-cluster"
 
   tags = {
     Name = "${local.common_name_prefix}-ecs-cluster"
@@ -100,7 +98,7 @@ resource "aws_ecs_service" "common" {
 
   load_balancer {
     target_group_arn = each.value.target_group_arn
-    container_name   = "${var.app_name}-${var.environment}-${each.value.container_name_suffix}"
+    container_name   = "${local.common_name_prefix}-${each.key}-container"
     container_port   = 3000
   }
 
@@ -115,7 +113,7 @@ resource "aws_ecs_service" "common" {
 resource "aws_ecs_task_definition" "common" {
   for_each = local.task_definitions
 
-  family                   = "${each.key}-task-definition"
+  family                   = "${local.common_name_prefix}-${each.key}-task-definition"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task.cpu
@@ -123,12 +121,16 @@ resource "aws_ecs_task_definition" "common" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
-    name  = "${var.app_name}-${var.environment}-${each.value.container_name_suffix}"
+    name  = "${local.common_name_prefix}-${each.key}-container"
     image = "${each.value.image_url}:${each.value.latest_image_tag}"
     portMappings = [{
       containerPort = 3000
       hostPort      = 3000 // Fargateでは無視される
     }]
+#    runtime_platform = {
+#      operating_system_family = "LINUX"
+#      cpu_architecture = "ARM64"
+#    }
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -159,22 +161,43 @@ resource "aws_appautoscaling_target" "common" {
   depends_on = [aws_ecs_service.common]
 }
 
-resource "aws_appautoscaling_policy" "common" {
+resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
   for_each = local.task_definitions
 
   name               = "cpu-scale-up"
-  service_namespace  = "ecs"
-  scalable_dimension = "ecs:service:DesiredCount"
   resource_id        = "service/${aws_ecs_cluster.main.name}/${each.key}-service"
   policy_type        = "TargetTrackingScaling"
+  service_namespace  = aws_appautoscaling_target.common[each.key].service_namespace
+  scalable_dimension = aws_appautoscaling_target.common[each.key].scalable_dimension
 
   target_tracking_scaling_policy_configuration {
-    target_value       = var.autoscaling.cpu_scale_up_target_value
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    scale_out_cooldown = var.autoscaling.scale_out_cooldown
-    scale_in_cooldown  = var.autoscaling.scale_in_cooldown
+    target_value       = var.autoscaling.cpu.scale_up_target_value
+    scale_out_cooldown = var.autoscaling.cpu.scale_out_cooldown
+    scale_in_cooldown  = var.autoscaling.cpu.scale_in_cooldown
+  }
+
+  depends_on = [aws_ecs_service.common]
+}
+
+resource "aws_appautoscaling_policy" "memory_scaling_policy" {
+  for_each = local.task_definitions
+
+  name               = "memory-scale-up"
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${each.key}-service"
+  policy_type        = "TargetTrackingScaling"
+  scalable_dimension = aws_appautoscaling_target.common[each.key].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.common[each.key].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = var.autoscaling.memory.scale_up_target_value
+    scale_out_cooldown = var.autoscaling.memory.scale_out_cooldown
+    scale_in_cooldown  = var.autoscaling.memory.scale_in_cooldown
   }
 
   depends_on = [aws_ecs_service.common]
