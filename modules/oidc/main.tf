@@ -30,9 +30,9 @@ resource "aws_iam_role" "github_actions" {
         Federated = aws_iam_openid_connect_provider.github.arn
       },
       Condition = {
-        StringEquals = {
+        StringLike = {
           "token.actions.githubusercontent.com:aud" : var.sts_audience,
-          "token.actions.githubusercontent.com:sub" : "repo:${var.github_actions.repository}:ref:refs/heads/${var.github_actions.branch}"
+          "token.actions.githubusercontent.com:sub" : "repo:${var.github_actions.repository}:*"
         }
       }
     }]

@@ -122,7 +122,7 @@ variable "iam_role_github_actions" {
     branch     = string
   })
   default = {
-    repository = "bwkw/sharely"
+    repository = "bwkw/sharely-app"
     branch     = "stg"
   }
 }
